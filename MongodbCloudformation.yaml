@@ -31,14 +31,15 @@ Resources:
 
   PrivateRoute1:
     Type: 'AWS::EC2::Route'
-    DependsOn: MyVPCGatewayAttachment
     Properties:
       RouteTableId: !Ref MyRouteTable
       DestinationCidrBlock: '10.0.0.0/16'
+    
 
-  Type: AWS::EC2::EIPAssociation
+  EIPAssociation1:
+    Type: AWS::EC2::EIPAssociation
     Properties: 
-      InstanceId: !Ref Ansible #Ansible instance will be used as jumpbox requiring public IP
+      InstanceId: !Ref Ansible # Ansible host will be jump box too requiring public IP
       EIP: '52.76.102.239'
 
 
