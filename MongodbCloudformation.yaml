@@ -1,6 +1,7 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
 Resources:
+ ## Networking and IP address section 
   VPC:
     Type: 'AWS::EC2::VPC'
     Properties:
@@ -35,6 +36,11 @@ Resources:
       RouteTableId: !Ref MyRouteTable
       DestinationCidrBlock: '10.0.0.0/16'
 
+  Type: AWS::EC2::EIPAssociation
+    Properties: 
+      InstanceId: !Ref Ansible #Ansible instance will be used as jumpbox requiring public IP
+      EIP: '52.76.102.239'
+
 
   Subnet:
     Type: 'AWS::EC2::Subnet'
@@ -64,7 +70,7 @@ Resources:
           ToPort: '22'
           CidrIp: 10.0.0.0/16
 
-  Ansible:
+  Ansible: # Ansible host also used as jumpbox
     Type: 'AWS::EC2::Instance'
     Properties:
       ImageId: ami-029562ad87fe1185c
