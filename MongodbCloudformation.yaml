@@ -1,0 +1,99 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/16
+
+  Subnet:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.0.0/24
+
+  AnsibleSG:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Allows SSH access
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: 'tcp'
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+  
+  MongoDBSG:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Allows SSH access
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: 'tcp'
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 10.0.0.0/16
+
+  Ansible:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-029562ad87fe1185c
+      InstanceType: t2.micro
+      KeyName: TMCedward
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: 'true'
+          DeviceIndex: '0'
+          GroupSet:
+            - !Ref AnsibleSG
+          SubnetId: !Ref Subnet
+      Tags: 
+          - Key: "Name"
+            Value: "Ansible" 
+
+  MongoDB1:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-029562ad87fe1185c
+      InstanceType: t2.micro
+      KeyName: TMCedward
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: 'false'
+          DeviceIndex: '0'
+          GroupSet:
+            - !Ref MongoDBSG
+          SubnetId: !Ref Subnet
+      Tags: 
+          - Key: "Name"
+            Value: "MongoDB1" 
+          
+  MongoDB2:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-029562ad87fe1185c
+      InstanceType: t2.micro
+      KeyName: TMCedward
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: 'false'
+          DeviceIndex: '0'
+          GroupSet:
+            - !Ref MongoDBSG
+          SubnetId: !Ref Subnet
+      Tags: 
+          - Key: "Name"
+            Value: "MongoDB2" 
+          
+  MongoDB3:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: ami-029562ad87fe1185c
+      InstanceType: t2.micro
+      KeyName: TMCedward
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: 'false'
+          DeviceIndex: '0'
+          GroupSet:
+            - !Ref MongoDBSG
+          SubnetId: !Ref Subnet
+      Tags: 
+          - Key: "Name"
+            Value: "MongoDB3" 

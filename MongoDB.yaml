@@ -1,0 +1,35 @@
+- name: Configure MongoDB Replicaset
+  hosts: mongodb
+  vars:
+    replicaset_name: "rs0"
+    mongodb_version: "4.4"
+    node_list:
+      - hostname: "mongodb-node1"
+        port: "27017"
+        arbiter: false
+      - hostname: "mongodb-node2"
+        port: "27017"
+        arbiter: false
+      - hostname: "mongodb-arbiter"
+        port: "27017"
+        arbiter: true
+
+  tasks:
+  - name: Install MongoDB package
+    package:
+      name: mongodb-org
+      state: present
+      version: "{{ mongodb_version }}"
+
+  - name: Configure MongoDB Replicaset
+    command: mongo --host {{ item.hostname }} --port {{ item.port }} --eval 'rs.initiate({ _id: "{{ replicaset_name }}", members: [ { _id: 0, host: "{{ item.hostname }}:{{ item.port }}" } ] });'
+    with_items: "{{ node_list }}"
+    loop_control:
+      loop_var: item
+
+  - name: Add Arbiter
+    command: mongo --host {{ item.hostname }} --port {{ item.port }} --eval 'rs.addArb("{{ item.hostname }}:{{ item.port }}");'
+    when: item.arbiter
+    with_items: "{{ node_list }}"
+    loop_control:
+      loop_var: item
