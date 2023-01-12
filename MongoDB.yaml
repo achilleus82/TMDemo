@@ -18,40 +18,53 @@
       apt_key:
         url: https://www.mongodb.org/static/pgp/server-6.0.asc
         state: present
+      become: true
     
     - name: Add MongoDB package repository
       apt_repository:
         repo: 'deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse'
         state: present
         update_cache: yes
+      become: true
+
+    #This is needed for Ubuntu 20.04 as libssl1.1 is not included but it is needed for mongoDB6.0.
+    - name: Add Security package repository
+      apt_repository:
+        repo: 'deb [ arch=amd64 ] http://security.ubuntu.com/ubuntu focal-security main'
+        state: present
+        update_cache: yes
+      become: true
+    
+    - name: Install libssl1.1 dependency
+      apt:
+        name: libssl1.1
+        state: present
+      become: true
 
     - name: Install MongoDB community edition
       package:
         name: mongodb-org
         state: present
       become: true
-    - name: Start MongoDB service
-      service:
-        name: mongod
-        state: started
-        enabled: true
+    
+    - name: Start MongoDB service with replication enabled
+      shell: systemctl start mongod --replSet "{{ repl_name }}"
       become: true
-    - name: Configure MongoDB replica set
-      shell: |
-        mongo --eval "rs.initiate({
-          _id: '{{ repl_name }}',
-          members: [
-            { _id: 0, host: '{{ members[0].host }}:27017', priority: {{ members[0].priority }}, votes: {{ members[0].votes }} },
-            { _id: 1, host: '{{ members[1].host }}:27017', priority: {{ members[1].priority }}, votes: {{ members[1].votes }} },
-            { _id: 2, host: '{{ members[2].host }}:27017', priority: {{ members[2].priority }}, votes: {{ members[2].votes }} }
-          ]
-        })"
+    
+    - name: Add replication configuration to mongod.conf
+      lineinfile:
+        path: /etc/mongod.conf
+        regexp: '^replication:'
+        line: 'replication: { replSetName: "{{ repl_name }}" }'
+        state: present
       become: true
+
+
     - name: Wait for replica set initialization
       pause:
         seconds: 30
     - name: Add arbiter to replica set
       shell: |
-        mongo --eval "rs.addArb('{{ members[2].host }}:27017')"
+        mongosh --eval "rs.addArb('{{ members[2].host }}:27017')"
       become: true
 
