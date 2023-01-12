@@ -15,11 +15,13 @@
         arbiter: true
 
   tasks:
-  - name: Install MongoDB package
-    package:
-      name: mongodb-org
-      state: present
-      version: "{{ mongodb_version }}"
+  - name: Install MongoDB #Install MongoDB if the package is not installed
+      package:
+        name: mongodb-server
+        state: present
+      when: ansible_pkg_mgr != "apt" or (ansible_pkg_mgr == "apt" and mongodb_server_installed is not defined)
+      register: mongodb_server_installed
+      become: true
 
   - name: Configure MongoDB Replicaset
     command: mongo --host {{ item.hostname }} --port {{ item.port }} --eval 'rs.initiate({ _id: "{{ replicaset_name }}", members: [ { _id: 0, host: "{{ item.hostname }}:{{ item.port }}" } ] });'
