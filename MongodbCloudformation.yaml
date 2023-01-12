@@ -5,6 +5,36 @@ Resources:
     Type: 'AWS::EC2::VPC'
     Properties:
       CidrBlock: 10.0.0.0/16
+  
+  MyInternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+
+  MyVPCGatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref MyInternetGateway
+
+  MyRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+
+  PublicRoute1:
+    Type: 'AWS::EC2::Route'
+    DependsOn: MyVPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref MyRouteTable
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref MyInternetGateway
+
+  PrivateRoute1:
+    Type: 'AWS::EC2::Route'
+    DependsOn: MyVPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref MyRouteTable
+      DestinationCidrBlock: '10.0.0.0/16'
+
 
   Subnet:
     Type: 'AWS::EC2::Subnet'
