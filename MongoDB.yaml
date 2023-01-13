@@ -20,7 +20,7 @@
         votes: 1
         arbiter: false
   tasks:
-    - name: Modify host file to resolve MongoDB hostnames
+    - name: Modify host file to resolve MongoDB hostnames # This is needed for me as I got error when trying to use IP address, probably not actually needed
       lineinfile:
         dest: /etc/hosts
         line: "{{ item.ip }} {{ item.hostname }}"
@@ -31,7 +31,7 @@
         - { hostname: "mongodb3", ip: "10.0.0.18" }
       become: true
 
-    - name: Import MongoDB package repository key
+    - name: Import MongoDB package repository key       # MongoDB is not included with Ubuntu 20.04
       apt_key:
         url: https://www.mongodb.org/static/pgp/server-6.0.asc
         state: present
@@ -80,7 +80,7 @@
       pause:
         seconds: 10
 
-    - name: check status of replica set
+    - name: check status of replica set  #To check replica status and avoid host already in replicaset being added again generating ansible error
       shell: /usr/bin/mongosh --eval "printjson(rs.status())"
       register: mongo_status
 
