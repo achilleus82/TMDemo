@@ -1,18 +1,18 @@
 ---
-- name: Install MongoDB community edition
+- name: Install MongoDB community edition with 2 Replicator and 1 Arbiter
   hosts: mongodb
   vars:
     repl_name: "rs0"
     members:
       - host: "mongodb1"
-        priority: 1
-        votes: 1
+        port: "27017"
+        arbiter: false
       - host: "mongodb2"
-        priority: 1
-        votes: 1
+        port: "27017"
+        arbiter: false
       - host: "mongodb3"
-        priority: 0
-        votes: 0
+        port: "27017"
+        arbiter: true
   tasks:
     - name: Import MongoDB package repository key
       apt_key:
@@ -48,8 +48,12 @@
       become: true
     
     - name: Start MongoDB service with replication enabled
-      shell: systemctl start mongod --replSet "{{ repl_name }}"
+      shell: systemctl start mongod
       become: true
+
+    - name: Wait for MongoDB to start
+      pause:
+        seconds: 20
     
     - name: Add replication configuration to mongod.conf
       lineinfile:
@@ -59,12 +63,23 @@
         state: present
       become: true
 
+    - name: Configure MongoDB Community Edition Replicaset
+      command: mongod --replSet {{ repl_name }} --bind_ip {{ hostvars[item].ansible_eth0.ipv4.address }} --port {{ item.port }} 
+      with_items: "{{ members }}"
+      loop_control:
+        loop_var: item
+
+    - name: Configure Replicaset
+      shell:  mongosh --eval 'rs.initiate({ _id: "{{ repl_name }}", members: [ { _id: 0, host: "mongodb1:27017" },{ _id: 1, host: "mongod2:27017" }] });'
 
     - name: Wait for replica set initialization
       pause:
         seconds: 30
+
     - name: Add arbiter to replica set
-      shell: |
-        mongosh --eval "rs.addArb('{{ members[2].host }}:27017')"
-      become: true
+      command: mongo --eval 'rs.addArb("{{ item.hostname }}:{{ item.port }}");'
+      when: item.arbiter
+      with_items: "{{ members }}"
+      loop_control:
+        loop_var: item
 
