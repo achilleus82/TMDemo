@@ -74,6 +74,10 @@ Resources:
           FromPort: '22'
           ToPort: '22'
           CidrIp: 10.0.0.0/16
+        - IpProtocol: 'tcp' #MongoDB replication port
+          FromPort: '27017'
+          ToPort: '27017'
+          CidrIp: 10.0.0.0/16
 
   Ansible: # Ansible host also used as jumpbox
     Type: 'AWS::EC2::Instance'
