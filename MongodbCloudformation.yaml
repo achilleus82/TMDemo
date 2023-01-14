@@ -63,6 +63,10 @@ Resources:
           FromPort: '3128'
           ToPort: '3128'
           CidrIp: 10.0.0.0/16
+        - IpProtocol: 'tcp' #allow connection for MongoDB Arbiter
+          FromPort: '27017'
+          ToPort: '27017'
+          CidrIp: 10.0.0.0/16
   
   MongoDBSG:
     Type: 'AWS::EC2::SecurityGroup'

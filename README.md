@@ -1,7 +1,7 @@
 
 # MongoDB Deployment with two Replica and one Arbiter on AWS with Cloudformation Template
 
-**This deployment is not production ready, purpose is to learn most basic MongoDB replication and arbiter components deployed using ansible, it is purposely made simple to facilitate learning without the "fluff"**
+**This deployment is not production ready, suited to be used as minimal POC or Demo for MongoDB Database with Replication and Arbiter**
 
 To use this modify inventory.ini with IP address on your infrastructure and run
 

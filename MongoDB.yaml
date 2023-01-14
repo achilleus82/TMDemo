@@ -19,8 +19,14 @@
         priority: 0
         votes: 1
         arbiter: false
+      - host: "mongodbarb"
+        port: "27017"
+        priority: 0
+        votes: 0
+        arbiter: true
   tasks:
-    - name: Modify host file to resolve MongoDB hostnames # This is needed for me as I got error when trying to use IP address, probably not actually needed
+    # This is needed for me as I got error when trying to use IP address, probably not actually needed
+    - name: Modify host file to resolve MongoDB hostnames 
       lineinfile:
         dest: /etc/hosts
         line: "{{ item.ip }} {{ item.hostname }}"
@@ -29,9 +35,11 @@
         - { hostname: "mongodb1", ip: "10.0.0.169" }
         - { hostname: "mongodb2", ip: "10.0.0.72" }
         - { hostname: "mongodb3", ip: "10.0.0.18" }
+        - { hostname: "mongodbarb", ip: "10.0.0.140" }
       become: true
 
-    - name: Import MongoDB package repository key       # MongoDB is not included with Ubuntu 20.04
+    # MongoDB is not included with Ubuntu 20.04
+    - name: Import MongoDB package repository key       
       apt_key:
         url: https://www.mongodb.org/static/pgp/server-6.0.asc
         state: present
@@ -80,7 +88,8 @@
       pause:
         seconds: 10
 
-    - name: check status of replica set  #To check replica status and avoid host already in replicaset being added again generating ansible error
+    #To check replica status and avoid host already in replicaset being added again generating ansible error
+    - name: check status of replica set  
       shell: /usr/bin/mongosh --eval "printjson(rs.status())"
       register: mongo_status
 
@@ -91,21 +100,10 @@
           members: [
             { _id: 0, host: '{{ members[0].host }}:27017', priority: {{ members[0].priority }}, votes: {{ members[0].votes }} },
             { _id: 1, host: '{{ members[1].host }}:27017', priority: {{ members[1].priority }}, votes: {{ members[1].votes }} },
-            { _id: 2, host: '{{ members[2].host }}:27017', priority: {{ members[2].priority }}, votes: {{ members[2].votes }} }
-          ]
-        })"
+            { _id: 2, host: '{{ members[2].host }}:27017', priority: {{ members[2].priority }}, votes: {{ members[2].votes }} },
+            { _id: 3, host: '{{ members[3].host }}:27017', priority: {{ members[3].priority }}, votes: {{ members[3].votes }},
+            arbiterOnly: {{ members[3].arbiter}} }
+            ]
+            })"
       when: mongo_status.stdout.find("no replset config has been received") != -1
       become: true
-
-    - name: Wait for replica set initialization
-      pause:
-        seconds: 10
-
-    - name: Add arbiter to replica set
-      command: /usr/bin/mongosh --eval 'rs.addArb("{{ item.host }}:{{ item.port }}");'
-      when: item.arbiter
-      with_items: "{{ members }}"
-      loop_control:
-        loop_var: item
-      become: true
-
