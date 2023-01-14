@@ -32,16 +32,16 @@
 
   tasks:
     # This is needed for me as I got error when trying to use IP address, probably not actually needed
-    - name: Set hostname
-      hostname:
-        name: "{{ hostnames[ansible_hostname] }}"
-      become: true
-    - name: Update /etc/hosts file
+    - name: Modify host file to resolve MongoDB hostnames 
       lineinfile:
-        path: /etc/hosts
-        line: "{{ ansible_default_ipv4.address }} {{ hostnames[ansible_hostname] }}"
+        dest: /etc/hosts
+        line: "{{ item.ip }} {{ item.hostname }}"
         state: present
-        insertbefore: EOF
+      loop:
+        - { hostname: "mongodb1", ip: "10.0.0.169" }
+        - { hostname: "mongodb2", ip: "10.0.0.72" }
+        - { hostname: "mongodb3", ip: "10.0.0.18" }
+        - { hostname: "mongodbarb", ip: "10.0.0.140" }
       become: true
 
     # MongoDB is not included with Ubuntu 20.04
@@ -95,14 +95,10 @@
         seconds: 10
 
     #To check replica status and avoid host already in replicaset being added again
-    - name: check if host is mongodbarb
-      shell: hostname
-      register: hostname
 
     - name: check status of replica set
       shell: /usr/bin/mongosh --eval "printjson(rs.status())"
       register: mongo_status
-      when: hostname.stdout != "mongodbarb"
 
     - name: Configure Replicaset
       shell: |
