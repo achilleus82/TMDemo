@@ -8,7 +8,7 @@
 
 ![alt text](https://github.com/achilleus82/TMDemo/blob/main/MongoDB.png?raw=true)
 
-## How to
+## How to use
 
 1. Generate AWS Elastic IP to be used in MongodbCloudformation.yaml
 2. Modify variable in inventory.ini , MongoDB.yaml and MongodbCloudformation.yaml depending on your setup 
