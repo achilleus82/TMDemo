@@ -113,3 +113,9 @@
         })"
       when: mongo_status.stdout.find("no replset config has been received") != -1
       become: true
+
+    - name: Add mongodbarb as arbiter to replicaset
+      shell: mongo --host {{ repl_name }} --eval "rs.addArb('mongodbarb:27017')"
+      when: mongo_status.stdout.find("no replset config has been received") != -1
+      become: true
+
