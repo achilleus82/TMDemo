@@ -26,7 +26,7 @@
         arbiter: true
 
   tasks:
-    # This is needed for me as I got error when trying to use IP address, probably not actually needed
+    # Workaround as we dont have DNS server
     - name: Modify host file to resolve MongoDB hostnames 
       lineinfile:
         dest: /etc/hosts
@@ -80,6 +80,14 @@
         line: 'replication: { replSetName: "{{ repl_name }}" }'
         state: present
       become: true
+
+    - name: Bind IP to all for mongodb.conf
+      lineinfile:
+        path: /etc/mongod.conf
+        regexp: '^[[:space:]]*bindIp:[[:space:]]*127.0.0.1'
+        line: '  bindIp: 0.0.0.0'
+      become: true
+
 
     - name: Start MongoDB service
       shell: systemctl start mongod
