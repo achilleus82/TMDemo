@@ -24,18 +24,24 @@
         priority: 0
         votes: 0
         arbiter: true
+    hostnames:
+      mongodb1: "mongodb1"
+      mongodb2: "mongodb2"
+      mongodb3: "mongodb3"
+      mongodbarb: "mongodbarb"
+
   tasks:
     # This is needed for me as I got error when trying to use IP address, probably not actually needed
-    - name: Modify host file to resolve MongoDB hostnames 
+    - name: Set hostname
+      hostname:
+        name: "{{ hostnames[ansible_hostname] }}"
+      become: true
+    - name: Update /etc/hosts file
       lineinfile:
-        dest: /etc/hosts
-        line: "{{ item.ip }} {{ item.hostname }}"
+        path: /etc/hosts
+        line: "{{ ansible_default_ipv4.address }} {{ hostnames[ansible_hostname] }}"
         state: present
-      loop:
-        - { hostname: "mongodb1", ip: "10.0.0.169" }
-        - { hostname: "mongodb2", ip: "10.0.0.72" }
-        - { hostname: "mongodb3", ip: "10.0.0.18" }
-        - { hostname: "mongodbarb", ip: "10.0.0.140" }
+        insertbefore: EOF
       become: true
 
     # MongoDB is not included with Ubuntu 20.04
