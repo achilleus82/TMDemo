@@ -88,10 +88,15 @@
       pause:
         seconds: 10
 
-    #To check replica status and avoid host already in replicaset being added again generating ansible error
-    - name: check status of replica set  
+    #To check replica status and avoid host already in replicaset being added again
+    - name: check if host is mongodbarb
+      shell: hostname
+      register: hostname
+
+    - name: check status of replica set
       shell: /usr/bin/mongosh --eval "printjson(rs.status())"
       register: mongo_status
+      when: hostname.stdout != "mongodbarb"
 
     - name: Configure Replicaset
       shell: |
