@@ -24,11 +24,6 @@
         priority: 0
         votes: 0
         arbiter: true
-    hostnames:
-      mongodb1: "mongodb1"
-      mongodb2: "mongodb2"
-      mongodb3: "mongodb3"
-      mongodbarb: "mongodbarb"
 
   tasks:
     # This is needed for me as I got error when trying to use IP address, probably not actually needed
